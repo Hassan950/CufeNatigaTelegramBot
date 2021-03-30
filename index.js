@@ -69,10 +69,7 @@ async function sendMessageInTelegram(depts) {
     chatId,
     'ظهرت النتائج التالية:\n' +
       depts.join('\n') +
-      '\nhttps://std.eng.cu.edu.eg/',
-      {
-        disable_notification: true
-      }
+      '\nhttps://std.eng.cu.edu.eg/'
   );
 }
 
