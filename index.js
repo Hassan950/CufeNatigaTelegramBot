@@ -64,12 +64,15 @@ async function updatePrevShown(collection, _id, shown) {
 }
 
 async function sendMessageInTelegram(depts) {
-  const chatId = !test ? '@CufeNatiga' : process.env.MY_PRIVATE_CHAT_ID;
+  const chatId = !test ? '-1001382133604' : process.env.MY_PRIVATE_CHAT_ID;
   await bot.sendMessage(
     chatId,
     'ظهرت النتائج التالية:\n' +
       depts.join('\n') +
-      '\nhttps://std.eng.cu.edu.eg/'
+      '\nhttps://std.eng.cu.edu.eg/',
+      {
+        disable_notification: true
+      }
   );
 }
 
