@@ -45,7 +45,7 @@ TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 MY_PRIVATE_CHAT_ID=XXXXXXXXXX
  ```
 * `dbURI`: The uri of the mongodb cluster.
-* `TELEGRAM_BOT_TOKEN`: Token of your telegram bot.
+* `TELEGRAM_BOT_TOKEN`: Token of your telegram bot (See this [guide](https://core.telegram.org/bots#3-how-do-i-create-a-bot) for more info).
 * `MY_PRIVATE_CHAT_ID`: This is actually for testing in your private chat instead of fulling the channel's chat with false alarms.
 
 ### Running
