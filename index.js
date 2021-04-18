@@ -78,7 +78,8 @@ function detectChanges(shown, prevShown) {
   [...shown].forEach((value, i) => {
     if (value === '1' && value !== prevShown[i]) {
       //detected
-      depts.push(getDepartment(i));
+      if((dep = getDepartment(i)) !== null)
+        depts.push(dep);
     }
   });
   return depts;
@@ -103,4 +104,5 @@ function getDepartment(i) {
       return `${years[year]} ${dep}`;
     }
   }
+  return null;
 }
