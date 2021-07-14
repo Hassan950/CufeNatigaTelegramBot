@@ -1,8 +1,8 @@
 
-exports.years = ['أولى', 'تانية', 'تالتة', 'رابعة'];
-exports.prepYear = ['النصف الأول', 'النصف الثاني'];
+export const years = ['أولى', 'تانية', 'تالتة', 'رابعة'];
+export const prepYear = ['النصف الأول', 'النصف الثاني'];
 
-exports.mapping = {
+export const mapping = {
   الكترونيات: [1, 2, 3, 4],
 
   'كهرباء قوى': [5, 6, 7, 8],

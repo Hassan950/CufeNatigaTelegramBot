@@ -1,24 +1,32 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 //set this to true if you want to test without sending message on public channel & writing into database
 const test = false;
 
 //constants to map numbers to department-year form
-const { years, mapping, prepYear } = require('./constants');
+import { years, mapping, prepYear } from './constants.js';
 
 //telegram bot for sending the notifications
-const TelegramBot = require('node-telegram-bot-api');
+import TelegramBot from 'node-telegram-bot-api';
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 
 //to fetch the current shown results from website
-const fetch = require('isomorphic-fetch');
+import fetch from 'isomorphic-fetch';
+
+import captureWebsite from 'capture-website';
+import axios from 'axios';
 
 //to save previous shown results. to avoid sending message for already shown results when restarting the app
-const MongoClient = require('mongodb').MongoClient;
-const connection = MongoClient.connect(process.env.dbURI, {
+import MongoClient from 'mongodb';
+
+const connection = MongoClient.MongoClient.connect(process.env.dbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+import imgur from 'imgur';
+imgur.setClientId(process.env.IMGUR_CLIENT_ID);
 
 (async () => {
   const collection = (await connection).db('test').collection('natiga');
@@ -43,7 +51,10 @@ async function check({ prevShown, _id }, collection) {
     const depts = detectChanges(shown, prevShown);
 
     if (depts.length) {
-      await sendMessageInTelegram(depts);
+      await Promise.all([
+        sendMessageInTelegram(depts),
+        sendMessageInFacebook(depts),
+      ]);
       await updatePrevShown(collection, _id, shown);
     }
   }
@@ -63,6 +74,31 @@ async function updatePrevShown(collection, _id, shown) {
   else console.log('saved in db');
 }
 
+async function sendMessageInFacebook(depts) {
+  const image = await captureWebsite.base64(
+    'http://www.results.eng.cu.edu.eg/',
+    {
+      fullPage: true,
+    }
+  );
+
+  const { link } = await imgur.uploadBase64(image);
+
+  await axios.post(
+    `https://graph.facebook.com/${process.env.FACEBOOK_PAGE_ID}/photos`,
+    {
+      caption:
+        'ظهرت النتائج التالية:\n' +
+        depts.join('\n') +
+        '\nhttps://std.eng.cu.edu.eg/' +
+        '\nJoin our telegram channel:\n' +
+        process.env.TELEGRAM_CHANNEL_LINK,
+      url: link,
+      access_token: process.env.FACEBOOK_PAGE_TOKEN,
+    }
+  );
+}
+
 async function sendMessageInTelegram(depts) {
   const chatId = !test ? '-1001382133604' : process.env.MY_PRIVATE_CHAT_ID;
   await bot.sendMessage(
@@ -78,15 +114,15 @@ function detectChanges(shown, prevShown) {
   [...shown].forEach((value, i) => {
     if (value === '1' && value !== prevShown[i]) {
       //detected
-      if((dep = getDepartment(i)) !== null)
-        depts.push(dep);
+      const dep = getDepartment(i);
+      if (dep !== null) depts.push(dep);
     }
   });
   return depts;
 }
 
 async function fetchShown() {
-  if (test) return '111111111111111111111111111111111111111111111111111111';
+  if (test) return '100000000000000000000010000000000000000000010000000000';
   const response = await fetch(
     'http://natigaupload.eng.cu.edu.eg/Config/Shown.js?r=59840366'
   );
