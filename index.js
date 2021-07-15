@@ -75,10 +75,14 @@ async function updatePrevShown(collection, _id, shown) {
 }
 
 async function sendMessageInFacebook(depts) {
+  if(test) return;
   const image = await captureWebsite.base64(
     'http://www.results.eng.cu.edu.eg/',
     {
       fullPage: true,
+      launchOptions: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
     }
   );
 
