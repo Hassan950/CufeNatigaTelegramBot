@@ -75,32 +75,35 @@ async function updatePrevShown(collection, _id, shown) {
 }
 
 async function sendMessageInFacebook(depts) {
-  if(test) return;
-  const image = await captureWebsite.base64(
-    'http://www.results.eng.cu.edu.eg/',
-    {
-      fullPage: true,
-      launchOptions: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      },
-    }
-  );
+  try {
+    if (test) return;
+    const image = await captureWebsite.base64(
+      'http://www.results.eng.cu.edu.eg/',
+      {
+        fullPage: true,
+        launchOptions: {
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        },
+      }
+    );
 
-  const { link } = await imgur.uploadBase64(image);
+    const { link } = await imgur.uploadBase64(image);
+    console.log(link);
 
-  await axios.post(
-    `https://graph.facebook.com/${process.env.FACEBOOK_PAGE_ID}/photos`,
-    {
-      caption:
-        'ظهرت النتائج التالية:\n' +
-        depts.join('\n') +
-        '\nhttps://std.eng.cu.edu.eg/' +
-        '\nJoin our telegram channel:\n' +
-        process.env.TELEGRAM_CHANNEL_LINK,
-      url: link,
-      access_token: process.env.FACEBOOK_PAGE_TOKEN,
-    }
-  );
+    await axios.post(
+      `https://graph.facebook.com/${process.env.FACEBOOK_PAGE_ID}/photos`,
+      {
+        caption:
+          'ظهرت النتائج التالية:\n' +
+          depts.join('\n') +
+          '\nDon\'t forget to join our telegram channel\n',
+        url: link,
+        access_token: process.env.FACEBOOK_PAGE_TOKEN,
+      }
+    );
+  } catch (err) {
+    console.log('Error in facebook: ' + err);
+  }
 }
 
 async function sendMessageInTelegram(depts) {
