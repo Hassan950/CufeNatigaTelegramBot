@@ -2,10 +2,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 //set this to true if you want to test without sending message on public channel & writing into database
-const test = false;
+const test = !process.env.NODE_ENV || process.env.NODE_ENV === 'test';
+console.log('test: ', test);
 
 //constants to map numbers to department-year form
-import { years, mapping, prepYear } from './constants.js';
+import {
+  YEARS_LABEL,
+  DEPARTMENTS_IDS_MAP,
+  PREP_YEAR_LABEL,
+  SHOWN_INITIAL_VALUE,
+} from './constants.js';
 
 //telegram bot for sending the notifications
 import TelegramBot from 'node-telegram-bot-api';
@@ -46,15 +52,15 @@ async function check({ prevShown, _id }, collection) {
   console.log(shown, prevShown);
 
   if (shown.length !== 54) throw 'Corrupted Response: Error in Length';
+  if (isResultsInited(shown, prevShown)) {
+    prevShown = SHOWN_INITIAL_VALUE;
+  }
   if (shown !== prevShown) {
     console.log('change detected');
     const depts = detectChanges(shown, prevShown);
 
     if (depts.length) {
-      await Promise.all([
-        sendMessageInTelegram(depts),
-        sendMessageInFacebook(depts),
-      ]);
+      await Promise.all([sendMessageInTelegram(depts), sendMessageInFacebook(depts)]);
       await updatePrevShown(collection, _id, shown);
     }
   }
@@ -77,30 +83,24 @@ async function updatePrevShown(collection, _id, shown) {
 async function sendMessageInFacebook(depts) {
   try {
     if (test) return;
-    const image = await captureWebsite.base64(
-      'http://www.results.eng.cu.edu.eg/',
-      {
-        fullPage: true,
-        launchOptions: {
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        },
-      }
-    );
+    const image = await captureWebsite.base64('http://www.results.eng.cu.edu.eg/', {
+      fullPage: true,
+      launchOptions: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
+    });
 
     const { link } = await imgur.uploadBase64(image);
     console.log(link);
 
-    await axios.post(
-      `https://graph.facebook.com/${process.env.FACEBOOK_PAGE_ID}/photos`,
-      {
-        caption:
-          'ظهرت النتائج التالية:\n' +
-          depts.join('\n') +
-          '\nDon\'t forget to join our telegram channel\n',
-        url: link,
-        access_token: process.env.FACEBOOK_PAGE_TOKEN,
-      }
-    );
+    await axios.post(`https://graph.facebook.com/${process.env.FACEBOOK_PAGE_ID}/photos`, {
+      caption:
+        'ظهرت النتائج التالية:\n' +
+        depts.join('\n') +
+        "\nDon't forget to join our telegram channel\n",
+      url: link,
+      access_token: process.env.FACEBOOK_PAGE_TOKEN,
+    });
   } catch (err) {
     console.log('Error in facebook: ' + err);
   }
@@ -110,9 +110,7 @@ async function sendMessageInTelegram(depts) {
   const chatId = !test ? '-1001382133604' : process.env.MY_PRIVATE_CHAT_ID;
   await bot.sendMessage(
     chatId,
-    'ظهرت النتائج التالية:\n' +
-      depts.join('\n') +
-      '\nhttps://std.eng.cu.edu.eg/'
+    'ظهرت النتائج التالية:\n' + depts.join('\n') + '\nhttps://std.eng.cu.edu.eg/'
   );
 }
 
@@ -129,23 +127,27 @@ function detectChanges(shown, prevShown) {
 }
 
 async function fetchShown() {
-  if (test) return '100000000000000000000010000000000000000000010000000000';
-  const response = await fetch(
-    'http://natigaupload.eng.cu.edu.eg/Config/Shown.js?r=59840366'
-  );
+  if (test) return '100000110000000000000010000000000000000000010000000110';
+  const response = await fetch('http://natigaupload.eng.cu.edu.eg/Config/Shown.js?r=59840366');
   const text = await response.text();
   const shown = text.match(/\d+/)[0];
   return shown;
 }
 
 function getDepartment(i) {
-  for (const [dep, index] of Object.entries(mapping)) {
+  for (const [dep, index] of Object.entries(DEPARTMENTS_IDS_MAP)) {
     let year = index.findIndex((value) => value === i);
     if (year !== -1) {
-      if (dep === 'اعدادي') return `${dep} ${prepYear[year]}`;
+      if (dep === 'اعدادي') return `${dep} ${PREP_YEAR_LABEL[year]}`;
       if (['ميكانيا قوى', 'ميكانيكا انتاج'].includes(dep)) year += 2;
-      return `${years[year]} ${dep}`;
+      return `${YEARS_LABEL[year]} ${dep}`;
     }
   }
   return null;
+}
+
+function isResultsInited(shown, prevShown) {
+  const shownResults = shown.split('').reduce((acc, value) => acc + +value, 0);
+  const prevShownResults = prevShown.split('').reduce((acc, value) => acc + +value, 0);
+  return shownResults < prevShownResults;
 }

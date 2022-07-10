@@ -1,8 +1,8 @@
+export const SHOWN_INITIAL_VALUE = '100000000000000000000000000000000000000000000000000000';
+export const YEARS_LABEL = ['أولى', 'تانية', 'تالتة', 'رابعة'];
+export const PREP_YEAR_LABEL = ['النصف الأول', 'النصف الثاني'];
 
-export const years = ['أولى', 'تانية', 'تالتة', 'رابعة'];
-export const prepYear = ['النصف الأول', 'النصف الثاني'];
-
-export const mapping = {
+export const DEPARTMENTS_IDS_MAP = {
   الكترونيات: [1, 2, 3, 4],
 
   'كهرباء قوى': [5, 6, 7, 8],
