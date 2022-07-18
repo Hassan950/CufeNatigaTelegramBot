@@ -131,7 +131,7 @@ async function fetchShown() {
   if (test) return '100000110000000000000010000000000000000000010000000110';
   const response = await fetch('http://natigaupload.eng.cu.edu.eg/Config/Shown.js?r=59840366');
   const text = await response.text();
-  const shown = text.match(/\[01]{53}/)?.[0];
+  const shown = text.match(/[01]{53}/)?.[0];
   return shown;
 }
 
