@@ -20,9 +20,6 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 //to fetch the current shown results from website
 import fetch from 'isomorphic-fetch';
 
-import captureWebsite from 'capture-website';
-import axios from 'axios';
-
 //to save previous shown results. to avoid sending message for already shown results when restarting the app
 import MongoClient from 'mongodb';
 
@@ -31,8 +28,6 @@ const connection = MongoClient.MongoClient.connect(process.env.dbURI, {
   useUnifiedTopology: true,
 });
 
-import imgur from 'imgur';
-imgur.setClientId(process.env.IMGUR_CLIENT_ID);
 
 (async () => {
   const collection = (await connection).db('test').collection('natiga');
@@ -82,29 +77,7 @@ async function updatePrevShown(collection, _id, shown) {
 }
 
 async function sendMessageInFacebook(depts) {
-  try {
-    if (test) return;
-    const image = await captureWebsite.base64('http://www.results.eng.cu.edu.eg/', {
-      fullPage: true,
-      launchOptions: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      },
-    });
-
-    const { link } = await imgur.uploadBase64(image);
-    console.log(link);
-
-    await axios.post(`https://graph.facebook.com/${process.env.FACEBOOK_PAGE_ID}/photos`, {
-      caption:
-        'ظهرت النتائج التالية:\n' +
-        depts.join('\n') +
-        "\nDon't forget to join our telegram channel\n",
-      url: link,
-      access_token: process.env.FACEBOOK_PAGE_TOKEN,
-    });
-  } catch (err) {
-    console.log('Error in facebook: ' + err);
-  }
+  return;
 }
 
 async function sendMessageInTelegram(depts) {
