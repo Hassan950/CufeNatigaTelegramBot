@@ -12,13 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
-    "capture-website": "^2.0.2",
     "dotenv": "^8.2.0",
-    "imgur": "^1.0.2",
     "isomorphic-fetch": "^3.0.0",
     "mongodb": "^3.6.5",
-    "node-telegram-bot-api": "^0.51.0",
-    "nodemailer": "^6.5.0"
+    "node-telegram-bot-api": "^0.51.0"
   }
 }
