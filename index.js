@@ -1,9 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import * as keep_alive from './keep_alive.js';
+
 //set this to true if you want to test without sending message on public channel & writing into database
 const test = !process.env.NODE_ENV || process.env.NODE_ENV === 'test';
-console.log('test: ', test);
+console.log(new Date().toISOString() + ':\t', 'test: ', test);
 
 //constants to map numbers to department-year form
 import {
@@ -16,6 +18,7 @@ import {
 //telegram bot for sending the notifications
 import TelegramBot from 'node-telegram-bot-api';
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+const chatId = !test ? '-1001382133604' : process.env.MY_PRIVATE_CHAT_ID;
 
 //to fetch the current shown results from website
 import fetch from 'isomorphic-fetch';
@@ -36,7 +39,7 @@ const connection = MongoClient.MongoClient.connect(process.env.dbURI, {
     try {
       prevShown = await check(prevShown, collection);
     } catch (err) {
-      console.log(err);
+      console.log(new Date().toISOString() + ':\t', err);
     }
     await new Promise((resolve) => setTimeout(resolve, 2 * 60 * 1000));
   }
@@ -44,15 +47,16 @@ const connection = MongoClient.MongoClient.connect(process.env.dbURI, {
 
 async function check({ prevShown, _id }, collection) {
   const shown = await fetchShown();
-  console.log(shown, prevShown);
+  console.log(new Date().toISOString() + ':\t', shown, prevShown);
 
   if (!shown) throw 'shown is null';
   if (shown.length !== 54) throw 'Corrupted Response: Error in Length';
   if (isResultsInited(shown, prevShown)) {
     prevShown = SHOWN_INITIAL_VALUE;
+    sendMessage("تم تحديث صفحة النتائج")
   }
   if (shown !== prevShown) {
-    console.log('change detected');
+    console.log(new Date().toISOString() + ':\t', 'change detected');
     const depts = detectChanges(shown, prevShown);
 
     if (depts.length) {
@@ -73,7 +77,7 @@ async function updatePrevShown(collection, _id, shown) {
         $set: { prevShown: shown },
       }
     );
-  else console.log('saved in db');
+  else console.log(new Date().toISOString() + ':\t', 'saved in db');
 }
 
 async function sendMessageInFacebook(depts) {
@@ -81,11 +85,13 @@ async function sendMessageInFacebook(depts) {
 }
 
 async function sendMessageInTelegram(depts) {
-  const chatId = !test ? '-1001382133604' : process.env.MY_PRIVATE_CHAT_ID;
-  await bot.sendMessage(
-    chatId,
+  await sendMessage(
     'ظهرت النتائج التالية:\n' + depts.join('\n') + '\nhttps://std.eng.cu.edu.eg/'
   );
+}
+
+function sendMessage(message) {
+  return bot.sendMessage(chatId, message);
 }
 
 function detectChanges(shown, prevShown) {
