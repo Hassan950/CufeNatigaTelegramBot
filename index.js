@@ -31,7 +31,6 @@ const connection = MongoClient.MongoClient.connect(process.env.dbURI, {
   useUnifiedTopology: true,
 });
 
-
 (async () => {
   const collection = (await connection).db('test').collection('natiga');
   let prevShown = await collection.findOne({});
@@ -53,7 +52,7 @@ async function check({ prevShown, _id }, collection) {
   if (shown.length !== 54) throw 'Corrupted Response: Error in Length';
   if (isResultsInited(shown, prevShown)) {
     prevShown = SHOWN_INITIAL_VALUE;
-    sendMessage("تم تحديث صفحة النتائج")
+    sendMessage('تم تحديث صفحة النتائج');
   }
   if (shown !== prevShown) {
     console.log(new Date().toISOString() + ':\t', 'change detected');
@@ -61,8 +60,8 @@ async function check({ prevShown, _id }, collection) {
 
     if (depts.length) {
       await Promise.all([sendMessageInTelegram(depts), sendMessageInFacebook(depts)]);
-      await updatePrevShown(collection, _id, shown);
     }
+    await updatePrevShown(collection, _id, shown);
   }
   return { prevShown: shown, _id };
 }
@@ -85,9 +84,7 @@ async function sendMessageInFacebook(depts) {
 }
 
 async function sendMessageInTelegram(depts) {
-  await sendMessage(
-    'ظهرت النتائج التالية:\n' + depts.join('\n') + '\nhttps://std.eng.cu.edu.eg/'
-  );
+  await sendMessage('ظهرت النتائج التالية:\n' + depts.join('\n') + '\nhttps://std.eng.cu.edu.eg/');
 }
 
 function sendMessage(message) {
